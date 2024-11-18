@@ -18,24 +18,30 @@ Implement binary tree inversion using iteration with queue-based level-order tra
 
 ######  Process Example
 
-輸入: [5, 3, 8, 1, 7, 2, 6]
+輸入: `[5, 3, 8, 1, 7, 2, 6]`
 
 1. Array to Tree：
+```
      5
    /   \
   3     8
  / \   / \
 1   7 2   6
+```
 
 2. Inversion：
+```
      5
    /   \
   8     3
  / \   / \
 6   2 7   1
+```
 
 3. Tree to Array：
+```
 [5, 8, 3, 6, 2, 7, 1]
+```
 
 ###### Implementation
 
