@@ -1,3 +1,5 @@
+const { v4: uuidv4 } = require('uuid');
+
 class Account {
     constructor(name, initialBalance = 0) {
         this.id = uuidv4();
