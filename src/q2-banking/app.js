@@ -1,6 +1,7 @@
 const express = require("express");
 const BankingService = require("./services/BankingService");
 const errorHandler = require("./middleware/errorHandler");
+const requestLogger = require("./middleware/logger");
 
 class BankingApp {
   constructor() {
@@ -11,6 +12,7 @@ class BankingApp {
   }
 
   setupMiddleware() {
+    this.app.use(requestLogger); 
     this.app.use(express.json());
     this.app.use(errorHandler); 
   }
