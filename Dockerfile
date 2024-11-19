@@ -1,19 +1,12 @@
-FROM node:20-alpine
-
+FROM node:16-alpine
 
 WORKDIR /app
 
-
 COPY package*.json ./
-
-
 RUN npm install
-
 
 COPY . .
 
-
 EXPOSE 3000
 
-
-CMD ["node", "src/q2-banking/app.js"]
+CMD ["npm", "start"]
