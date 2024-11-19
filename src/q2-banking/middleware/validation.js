@@ -37,7 +37,6 @@ const transferValidation = [
 ];
 
 module.exports = {
-  validateRequest,
   createAccountValidation,
   amountValidation,
   transferValidation,

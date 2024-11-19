@@ -17,7 +17,7 @@ module.exports = (bankingService) => {
     }
   });
 
-  router.post("/accounts/:id/withdraw", async (req, res) => {
+  router.post("/accounts/:id/withdraw", amountValidation, async (req, res) => {
     try {
       const { amount } = req.body;
       const account = await bankingService.withdraw(req.params.id, amount);
