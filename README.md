@@ -8,7 +8,7 @@ pnpm install
 ##### Run Tests
 
 ```
-pnpm test
+pnpm test:coverage
 ```
 
 
@@ -92,7 +92,7 @@ curl -X POST http://localhost:3000/accounts \
 
 ###### Get Account Details
 ```
-curl http://localhost:3000/accounts/{accountId}/transactions?page=1&limit=10
+curl http://localhost:3000/accounts/{accountId}
 ```
 
 ###### Deposit Money
