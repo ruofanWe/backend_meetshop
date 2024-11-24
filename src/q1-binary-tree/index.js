@@ -7,7 +7,9 @@ class TreeNode {
 }
 
 function arrayToTree(arr) {
-  if (!arr.length) return null;
+  if (!arr.length) {
+    return null;
+  }
 
   const root = new TreeNode(arr[0]);
   const queue = [root];
@@ -33,7 +35,9 @@ function arrayToTree(arr) {
 }
 
 function treeToArray(root) {
-  if (!root) return [];
+  if (!root) {
+    return [];
+  }
 
   const result = [];
   const queue = [root];
@@ -42,25 +46,34 @@ function treeToArray(root) {
     const node = queue.shift();
     result.push(node.val);
 
-    if (node.left) queue.push(node.left);
-    if (node.right) queue.push(node.right);
+    if (node.left) {
+      queue.push(node.left);
+    }
+    if (node.right) {
+      queue.push(node.right);
+    }
   }
 
   return result;
 }
 
 function invertTree(root) {
-  if (!root) return null;
+  if (!root) {
+    return null;
+  }
 
   const queue = [root];
 
   while (queue.length) {
     const node = queue.shift();
-
     [node.left, node.right] = [node.right, node.left];
 
-    if (node.left) queue.push(node.left);
-    if (node.right) queue.push(node.right);
+    if (node.left) {
+      queue.push(node.left);
+    }
+    if (node.right) {
+      queue.push(node.right);
+    }
   }
 
   return root;
