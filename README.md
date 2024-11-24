@@ -14,7 +14,6 @@ pnpm test
 
 ##### Q1: Binary Tree Inversion
 
-Implement binary tree inversion using iteration with queue-based level-order traversal to swap the left and right child nodes.
 
 ######  Process Example
 
@@ -43,12 +42,7 @@ Implement binary tree inversion using iteration with queue-based level-order tra
 [5, 8, 3, 6, 2, 7, 1]
 ```
 
-###### Implementation
 
-- Time Complexity: O(n), where n is the number of nodes
-- Space Complexity: O(w), where w is the maximum width of the tree
-- Using queue for level-order traversal
-- Non-recursive approach
 
 ##### Q2: Banking System
 
@@ -98,7 +92,7 @@ curl -X POST http://localhost:3000/accounts \
 
 ###### Get Account Details
 ```
-curl http://localhost:3000/accounts/{accountId}
+curl http://localhost:3000/accounts/{accountId}/transactions?page=1&limit=10
 ```
 
 ###### Deposit Money

@@ -9,7 +9,7 @@ class Transaction {
     this.targetAccountId = targetAccountId;
     this.timestamp = new Date();
     this.status = "pending";
-    this.balanceChanges = new Map(); // 紀錄每個帳戶的餘額變更
+    this.balanceChanges = new Map();
   }
 
   setBalanceChange(accountId, beforeBalance, afterBalance) {

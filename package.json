@@ -6,7 +6,7 @@
   "scripts": {
     "test": "jest",
     "test:q1": "jest tests/q1.test.js",
-    "test:q2": "jest tests/q2.test.js",
+    "test:coverage": "jest --coverage",
     "start": "node src/q2-banking/app.js",
     "dev": "nodemon src/q2-banking/app.js"
   },
