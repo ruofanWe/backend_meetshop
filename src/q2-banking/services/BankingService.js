@@ -2,27 +2,31 @@ const Account = require('../models/Account');
 const Transaction = require('../models/Transaction');
 
 class BankingService {
-  constructor() {
-    this.accounts = new Map();
-    this.transactions = new Map();
-    this.locks = new Map();
+  constructor(accountRepository, transactionRepository, lockRepository) {
+    if (!accountRepository) throw new Error('AccountRepository is required');
+  if (!transactionRepository) throw new Error('TransactionRepository is required');
+  if (!lockRepository) throw new Error('LockRepository is required');
+  
+  this.accountRepository = accountRepository;
+  this.transactionRepository = transactionRepository;
+  this.lockRepository = lockRepository;
   }
 
   async acquireLock(accountId, maxRetries = 50) {
     let retries = 0;
-    while (this.locks.get(accountId)) {
+    while (this.lockRepository.isLocked(accountId)) {
       if (retries >= maxRetries) {
         throw new Error('Lock acquisition timeout');
       }
       await new Promise(resolve => setTimeout(resolve, 50));
       retries++;
     }
-    this.locks.set(accountId, true);
+    this.lockRepository.acquire(accountId);
     return accountId;
   }
 
   async releaseLock(accountId) {
-    this.locks.delete(accountId);
+    this.lockRepository.release(accountId);
   }
 
   async acquireMultipleLocks(accountIds) {
@@ -40,22 +44,29 @@ class BankingService {
     }
   }
 
-  createAccount(name, initialBalance = 0) {
+  async createAccount(name, initialBalance = 0) {
     if (!name) {
       throw new Error('Account name is required');
     }
     if (initialBalance < 0) {
       throw new Error('Initial balance cannot be negative');
     }
-
+  
     const account = new Account(name, initialBalance);
-    this.accounts.set(account.id, account);
-
+    await this.accountRepository.save(account);
+    
+    if (initialBalance > 0) {
+      const transaction = new Transaction('deposit', initialBalance, account.id);
+      await this.transactionRepository.save(transaction);
+      account.addTransactionReference(transaction);
+      await this.accountRepository.update(account);
+    }
+  
     return account;
   }
 
-  getAccount(accountId) {
-    const account = this.accounts.get(accountId);
+  async getAccount(accountId) {
+    const account = await this.accountRepository.findById(accountId);
     if (!account) {
       throw new Error("Account not found");
     }
@@ -65,23 +76,24 @@ class BankingService {
   async deposit(accountId, amount) {
     const lock = await this.acquireLock(accountId);
     try {
-      const account = this.accounts.get(accountId);
+      const account = await this.accountRepository.findById(accountId);
       if (!account) {
         throw new Error('Account not found');
       }
-
+  
       if (amount <= 0) {
         throw new Error('Deposit amount must be positive');
       }
-
+  
       account.balance += amount;
       const transaction = new Transaction('deposit', amount, accountId);
       
-      this.transactions.set(transaction.id, transaction);
+      await this.transactionRepository.save(transaction);
       account.addTransactionReference(transaction);
-
+      await this.accountRepository.update(account);
+  
       return { 
-        account: account.toJSON(),
+        account: account,
         transaction 
       };
     } finally {
@@ -95,24 +107,25 @@ class BankingService {
       if (amount <= 0) {
         throw new Error("Withdrawal amount must be positive");
       }
-
-      const account = this.accounts.get(accountId);
+  
+      const account = await this.accountRepository.findById(accountId);
       if (!account) {
         throw new Error("Account not found");
       }
-
+  
       if (account.balance < amount) {
         throw new Error("Insufficient funds");
       }
-
+  
       account.balance -= amount;
       const transaction = new Transaction("withdraw", amount, accountId);
       
-      this.transactions.set(transaction.id, transaction);
+      await this.transactionRepository.save(transaction);
       account.addTransactionReference(transaction);
-
+      await this.accountRepository.update(account);
+  
       return { 
-        account: account.toJSON(),
+        account,
         transaction 
       };
     } finally {
@@ -123,29 +136,32 @@ class BankingService {
   async transfer(fromAccountId, toAccountId, amount) {
     const locks = await this.acquireMultipleLocks([fromAccountId, toAccountId]);
     try {
-      const fromAccount = this.accounts.get(fromAccountId);
-      const toAccount = this.accounts.get(toAccountId);
-
+      const fromAccount = await this.accountRepository.findById(fromAccountId);
+      const toAccount = await this.accountRepository.findById(toAccountId);
+  
       if (!fromAccount || !toAccount) {
         throw new Error('Account not found');
       }
-
+  
       if (fromAccount.balance < amount) {
         throw new Error('Insufficient funds');
       }
-
+  
       const transaction = new Transaction('transfer', amount, fromAccountId, toAccountId);
       
       fromAccount.balance -= amount;
       toAccount.balance += amount;
-
-      this.transactions.set(transaction.id, transaction);
+  
+      await this.transactionRepository.save(transaction);
       fromAccount.addTransactionReference(transaction);
       toAccount.addTransactionReference(transaction);
-
+      
+      await this.accountRepository.update(fromAccount);
+      await this.accountRepository.update(toAccount);
+  
       return {
-        fromAccount: fromAccount.toJSON(),
-        toAccount: toAccount.toJSON(),
+        fromAccount,
+        toAccount,
         transaction
       };
     } finally {
@@ -154,15 +170,15 @@ class BankingService {
   }
 
   async getTransactionHistory(accountId, page = 1, limit = 10) {
-    const account = this.accounts.get(accountId);
+    const account = await this.accountRepository.findById(accountId);
     if (!account) {
       throw new Error('Account not found');
     }
-
+  
     const startIndex = (page - 1) * limit;
     const endIndex = startIndex + limit;
     const transactions = account.transactions.slice(startIndex, endIndex);
-
+  
     return {
       transactions,
       page,
@@ -171,16 +187,16 @@ class BankingService {
     };
   }
 
-  getTransaction(transactionId) {
-    const transaction = this.transactions.get(transactionId);
+  async getTransaction(transactionId) {
+    const transaction = await this.transactionRepository.findById(transactionId);
     if (!transaction) {
       throw new Error("Transaction not found");
     }
     return transaction;
   }
 
-  getAccountTransactions(accountId) {
-    const account = this.getAccount(accountId);
+  async getAccountTransactions(accountId) {
+    const account = await this.getAccount(accountId);
     return account.transactions;
   }
 }

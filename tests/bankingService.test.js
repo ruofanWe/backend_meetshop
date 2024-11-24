@@ -1,42 +1,49 @@
 const BankingService = require('../src/q2-banking/services/BankingService');
+const InMemoryAccountRepository = require('../src/q2-banking/repositories/InMemoryAccountRepository');
+const InMemoryTransactionRepository = require('../src/q2-banking/repositories/InMemoryTransactionRepository');
+const InMemoryLockRepository = require('../src/q2-banking/repositories/InMemoryLockRepository');
+
 const Account = require('../src/q2-banking/models/Account');
 
 describe('BankingService Unit Tests', () => {
   let bankingService;
 
   beforeEach(() => {
-    bankingService = new BankingService();
+    const accountRepository = new InMemoryAccountRepository();
+    const transactionRepository = new InMemoryTransactionRepository();
+    const lockRepository = new InMemoryLockRepository();
+    bankingService = new BankingService(accountRepository, transactionRepository, lockRepository);
   });
 
   describe('Account Management', () => {
-    test('should create account with valid data', () => {
-      const account = bankingService.createAccount('Test Account', 1000);
+    test('should create account with valid data', async () => {
+      const account = await bankingService.createAccount('Test Account', 1000);
       
-      expect(account).toBeInstanceOf(Account); // Add type checking
+      expect(account).toBeInstanceOf(Account);
       expect(account.name).toBe('Test Account');
       expect(account.balance).toBe(1000);
       expect(account.id).toBeDefined();
       expect(account.transactions).toHaveLength(1);
     });
 
-    test('should throw error for negative initial balance', () => {
-      expect(() => {
-        bankingService.createAccount('Test Account', -100);
-      }).toThrow('Initial balance cannot be negative');
+    test('should throw error for negative initial balance', async () => {
+      await expect(bankingService.createAccount('Test Account', -100))
+        .rejects
+        .toThrow('Initial balance cannot be negative');
     });
 
-    test('should throw error for empty account name', () => {
-      expect(() => {
-        bankingService.createAccount('', 100);
-      }).toThrow('Account name is required');
+    test('should throw error for empty account name', async () => {
+      await expect(bankingService.createAccount('', 100))
+        .rejects
+        .toThrow('Account name is required');
     });
   });
 
   describe('Transaction Operations', () => {
     let account;
 
-    beforeEach(() => {
-      account = bankingService.createAccount('Test Account', 1000);
+    beforeEach(async () => { 
+      account = await bankingService.createAccount('Test Account', 1000);
     });
 
     test('should deposit money successfully', async () => {
@@ -71,9 +78,9 @@ describe('BankingService Unit Tests', () => {
   describe('Transfer Operations', () => {
     let account1, account2;
 
-    beforeEach(() => {
-      account1 = bankingService.createAccount('Account 1', 1000);
-      account2 = bankingService.createAccount('Account 2', 500);
+    beforeEach(async () => {  // Add async here
+      account1 = await bankingService.createAccount('Account 1', 1000);
+      account2 = await bankingService.createAccount('Account 2', 500);
     });
 
     test('should transfer money between accounts', async () => {
@@ -88,14 +95,14 @@ describe('BankingService Unit Tests', () => {
       const transfers = Array(5).fill().map(() => 
         bankingService.transfer(account1.id, account2.id, 100)
       );
-
+    
       await Promise.all(transfers);
       
-      const finalAccount1 = bankingService.getAccount(account1.id);
-      const finalAccount2 = bankingService.getAccount(account2.id);
+      const finalAccount1 = await bankingService.getAccount(account1.id);
+      const finalAccount2 = await bankingService.getAccount(account2.id);
       
-      expect(finalAccount1.balance).toBe(500); // 1000 - (5 * 100)
-      expect(finalAccount2.balance).toBe(1000); // 500 + (5 * 100)
+      expect(finalAccount1.balance).toBe(500);
+      expect(finalAccount2.balance).toBe(1000);
     });
   });
 });

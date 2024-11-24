@@ -6,8 +6,8 @@ module.exports = (bankingService) => {
   router.post("/accounts", createAccountValidation, async (req, res) => {
     try {
       const { name, initialBalance } = req.body;
-      const account = bankingService.createAccount(name, initialBalance);
-      res.status(201).json(account.toJSON());
+      const account = await bankingService.createAccount(name, initialBalance);
+      res.status(201).json(account);
     } catch (error) {
       res.status(400).json({ error: error.message });
     }
