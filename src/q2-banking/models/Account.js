@@ -1,5 +1,3 @@
-const { v4: uuidv4 } = require("uuid");
-
 class Account {
   constructor(name, initialBalance = 0) {
     this.id = uuidv4();
@@ -9,20 +7,8 @@ class Account {
     this.createdAt = new Date();
   }
 
-  addTransaction(type, amount, relatedAccountId = null) {
-    const transaction = {
-      id: uuidv4(),
-      type,
-      amount,
-      relatedAccountId,
-      balanceAfter: this.balance,
-      balanceBefore:
-        this.balance - (type.includes("deposit") ? amount : -amount),
-      timestamp: new Date(),
-      status: "completed",
-    };
+  addTransactionReference(transaction) {
     this.transactions.push(transaction);
-    return transaction;
   }
 }
 
