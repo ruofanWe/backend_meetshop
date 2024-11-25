@@ -3,8 +3,12 @@ const Transaction = require('../models/Transaction');
 
 class BankingService {
   constructor(accountRepository, transactionRepository) {
-    if (!accountRepository) throw new Error('AccountRepository is required');
-    if (!transactionRepository) throw new Error('TransactionRepository is required');
+    if (!accountRepository) {
+      throw new Error('AccountRepository is required');
+    }
+    if (!transactionRepository) {
+      throw new Error('TransactionRepository is required');
+    }
     
     this.accountRepository = accountRepository;
     this.transactionRepository = transactionRepository;
