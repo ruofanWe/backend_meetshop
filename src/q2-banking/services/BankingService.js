@@ -142,6 +142,11 @@ class BankingService {
   async transfer(fromAccountId, toAccountId, amount) {
     const locks = await this.acquireMultipleLocks([fromAccountId, toAccountId]);
     try {
+      // Add this check first
+      if (amount <= 0) {
+        throw new Error('Transfer amount must be positive');
+      }
+  
       const fromAccount = await this.accountRepository.findById(fromAccountId);
       const toAccount = await this.accountRepository.findById(toAccountId);
   

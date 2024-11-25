@@ -1,7 +1,6 @@
 const BankingService = require('../src/q2-banking/services/BankingService');
 const InMemoryAccountRepository = require('../src/q2-banking/repositories/InMemoryAccountRepository');
 const InMemoryTransactionRepository = require('../src/q2-banking/repositories/InMemoryTransactionRepository');
-
 const Account = require('../src/q2-banking/models/Account');
 
 describe('BankingService Unit Tests', () => {
@@ -76,7 +75,7 @@ describe('BankingService Unit Tests', () => {
   describe('Transfer Operations', () => {
     let account1, account2;
 
-    beforeEach(async () => {  // Add async here
+    beforeEach(async () => {
       account1 = await bankingService.createAccount('Account 1', 1000);
       account2 = await bankingService.createAccount('Account 2', 500);
     });
@@ -101,6 +100,48 @@ describe('BankingService Unit Tests', () => {
       
       expect(finalAccount1.balance).toBe(500);
       expect(finalAccount2.balance).toBe(1000);
+    });
+
+    test('should not modify balances when transfer fails due to insufficient funds', async () => {
+      const initialBalance1 = account1.balance;
+      const initialBalance2 = account2.balance;
+      
+      await expect(bankingService.transfer(account1.id, account2.id, 2000))
+        .rejects
+        .toThrow('Insufficient funds');
+
+      const finalAccount1 = await bankingService.getAccount(account1.id);
+      const finalAccount2 = await bankingService.getAccount(account2.id);
+
+      expect(finalAccount1.balance).toBe(initialBalance1);
+      expect(finalAccount2.balance).toBe(initialBalance2);
+    });
+
+    test('should not modify balances when transfer fails due to invalid account', async () => {
+      const initialBalance1 = account1.balance;
+      
+      await expect(bankingService.transfer(account1.id, 'invalid-account-id', 500))
+        .rejects
+        .toThrow('Account not found');
+
+      const finalAccount1 = await bankingService.getAccount(account1.id);
+
+      expect(finalAccount1.balance).toBe(initialBalance1);
+    });
+
+    test('should not modify balances when transfer fails due to negative amount', async () => {
+      const initialBalance1 = account1.balance;
+      const initialBalance2 = account2.balance;
+      
+      await expect(bankingService.transfer(account1.id, account2.id, -100))
+        .rejects
+        .toThrow('Transfer amount must be positive');
+
+      const finalAccount1 = await bankingService.getAccount(account1.id);
+      const finalAccount2 = await bankingService.getAccount(account2.id);
+
+      expect(finalAccount1.balance).toBe(initialBalance1);
+      expect(finalAccount2.balance).toBe(initialBalance2);
     });
   });
 });
