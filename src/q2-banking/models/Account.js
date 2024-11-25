@@ -8,28 +8,17 @@ class Account {
     this.transactions = [];
     this.createdAt = new Date().toISOString();
     this.locked = false;
-    this.lockTimeout = null;
   }
 
-  acquireLock(timeoutMs = 5000) {
+  acquireLock() {
     if (this.locked) {
       return false;
     }
     this.locked = true;
-    
-    // Set automatic lock release timeout
-    this.lockTimeout = setTimeout(() => {
-      this.releaseLock();
-    }, timeoutMs);
-    
     return true;
   }
 
   releaseLock() {
-    if (this.lockTimeout) {
-      clearTimeout(this.lockTimeout);
-      this.lockTimeout = null;
-    }
     this.locked = false;
   }
 
