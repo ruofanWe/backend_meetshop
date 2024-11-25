@@ -36,6 +36,10 @@ class BankingService {
   }
 
 
+  /**
+   * Acquires locks for multiple accounts in sorted order to prevent deadlocks.
+   * Always locks accounts in the same order regardless of input order.
+   */
   async acquireMultipleLocks(accountIds) {
     const sortedIds = [...new Set(accountIds)].sort();
     for (const id of sortedIds) {
