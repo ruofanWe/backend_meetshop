@@ -2,7 +2,6 @@ const express = require("express");
 const BankingService = require("./services/BankingService");
 const InMemoryAccountRepository = require('./repositories/InMemoryAccountRepository');
 const InMemoryTransactionRepository = require('./repositories/InMemoryTransactionRepository');
-const InMemoryLockRepository = require('./repositories/InMemoryLockRepository');
 const errorHandler = require("./middleware/errorHandler");
 const requestLogger = require("./middleware/logger");
 
@@ -11,11 +10,9 @@ class BankingApp {
     this.app = express();
     const accountRepository = new InMemoryAccountRepository();
     const transactionRepository = new InMemoryTransactionRepository();
-    const lockRepository = new InMemoryLockRepository();
     this.bankingService = new BankingService(
       accountRepository,
-      transactionRepository,
-      lockRepository
+      transactionRepository
     );
     
     this.setupMiddleware();

@@ -2,32 +2,35 @@ const Account = require('../models/Account');
 const Transaction = require('../models/Transaction');
 
 class BankingService {
-  constructor(accountRepository, transactionRepository, lockRepository) {
+  constructor(accountRepository, transactionRepository) {
     if (!accountRepository) throw new Error('AccountRepository is required');
-  if (!transactionRepository) throw new Error('TransactionRepository is required');
-  if (!lockRepository) throw new Error('LockRepository is required');
-  
-  this.accountRepository = accountRepository;
-  this.transactionRepository = transactionRepository;
-  this.lockRepository = lockRepository;
+    if (!transactionRepository) throw new Error('TransactionRepository is required');
+    
+    this.accountRepository = accountRepository;
+    this.transactionRepository = transactionRepository;
   }
 
   async acquireLock(accountId, maxRetries = 50) {
+    const account = await this.accountRepository.findById(accountId);
+    if (!account) {
+      throw new Error('Account not found');
+    }
+
     let retries = 0;
-    while (this.lockRepository.isLocked(accountId)) {
+    while (!account.acquireLock()) {
       if (retries >= maxRetries) {
         throw new Error('Lock acquisition timeout');
       }
       await new Promise(resolve => setTimeout(resolve, 50));
       retries++;
     }
-    this.lockRepository.acquire(accountId);
-    return accountId;
+    return account;
   }
 
-  async releaseLock(accountId) {
-    this.lockRepository.release(accountId);
+  async releaseLock(account) {
+    account.releaseLock();
   }
+
 
   async acquireMultipleLocks(accountIds) {
     const sortedIds = [...new Set(accountIds)].sort();
@@ -40,7 +43,10 @@ class BankingService {
   async releaseMultipleLocks(accountIds) {
     const sortedIds = [...new Set(accountIds)].sort();
     for (const id of sortedIds) {
-      await this.releaseLock(id);
+      const account = await this.accountRepository.findById(id);
+      if (account) {
+        account.releaseLock();
+      }
     }
   }
 
@@ -158,6 +164,8 @@ class BankingService {
       
       await this.accountRepository.update(fromAccount);
       await this.accountRepository.update(toAccount);
+  
+      transaction.complete();
   
       return {
         fromAccount,

@@ -58,12 +58,17 @@ module.exports = (bankingService) => {
     try {
       const { fromAccountId, toAccountId, amount } = req.body;
       const result = await bankingService.transfer(fromAccountId, toAccountId, amount);
-      res.json({
-        fromAccount: { balance: result.fromAccount.balance },
-        toAccount: { balance: result.toAccount.balance }
+      res.status(200).json({
+        fromAccount: result.fromAccount,
+        toAccount: result.toAccount,
+        transaction: result.transaction
       });
     } catch (error) {
-      res.status(400).json({ error: error.message });
+      if (error.message === 'Account not found') {
+        res.status(404).json({ error: error.message });
+      } else {
+        res.status(400).json({ error: error.message });
+      }
     }
   });
 

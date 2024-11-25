@@ -1,7 +1,6 @@
 const BankingService = require('../src/q2-banking/services/BankingService');
 const InMemoryAccountRepository = require('../src/q2-banking/repositories/InMemoryAccountRepository');
 const InMemoryTransactionRepository = require('../src/q2-banking/repositories/InMemoryTransactionRepository');
-const InMemoryLockRepository = require('../src/q2-banking/repositories/InMemoryLockRepository');
 
 const Account = require('../src/q2-banking/models/Account');
 
@@ -11,8 +10,7 @@ describe('BankingService Unit Tests', () => {
   beforeEach(() => {
     const accountRepository = new InMemoryAccountRepository();
     const transactionRepository = new InMemoryTransactionRepository();
-    const lockRepository = new InMemoryLockRepository();
-    bankingService = new BankingService(accountRepository, transactionRepository, lockRepository);
+    bankingService = new BankingService(accountRepository, transactionRepository);
   });
 
   describe('Account Management', () => {
