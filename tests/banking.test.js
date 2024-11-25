@@ -10,7 +10,6 @@ describe('Banking System API Integration Tests', () => {
     const bankingApp = new BankingApp();
     app = bankingApp.getApp();
 
-    // Create test accounts
     const res1 = await request(app)
       .post('/accounts')
       .send({ name: 'Test Account 1', initialBalance: 1000 });
